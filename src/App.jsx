@@ -3,12 +3,19 @@ import Sidebar from './components/Sidebar'
 import Credits from './pages/Credits'
 import Chatbox from './components/Chatbox'
 import Community from './pages/Community'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { assets } from './assets/assets'
 import './assets/prism.css'
+import Loading from './pages/Loading'
+import { useAppContext } from './context/AppContext'
+import Login from './pages/Login'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const {pathname} =useLocation();
+  const {user} =useAppContext();
+
+  if(pathname==='/loading') return <Loading/>
 
   useEffect(() => {
   if (window.innerWidth < 768) { // mobile size
@@ -27,8 +34,9 @@ function App() {
           alt="menu"
         />
       )}
+               {user?(
 
-      <div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
+                <div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
         <div className='flex w-screen h-screen'>
           <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
@@ -39,6 +47,16 @@ function App() {
           </Routes>
         </div>
       </div>
+
+
+               ):(
+                <div>
+
+                  <Login/>
+                </div>
+
+               )}
+      
     </>
   )
 }
