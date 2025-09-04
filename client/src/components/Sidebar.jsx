@@ -2,11 +2,39 @@ import React, { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { assets } from '../assets/assets';
 import moment from 'moment';
+import toast from 'react-hot-toast';
 
 function Sidebar({ isMenuOpen, setIsMenuOpen }) {
-  const { chats, setChats, theme, setTheme, user, navigate,selectedChat,setSelectedChat } = useAppContext();
+  const { chats, setChats, theme, setTheme, user, navigate,selectedChat,setSelectedChat,axios,fetchUserChats,setToken,token,createNewChat } = useAppContext();
   const [search, setSearch] = useState('');
 
+  const logout=()=>{
+         localStorage.removeItem('token');
+         setToken('null')
+         toast.success('logged out successfully')
+
+  }
+
+  const deleteChat=async(e,chatId)=>{
+         
+        try {
+          e.stopPropagation()
+          const confirm=window.confirm('ee chat kalayano?')
+          if(!confirm) return
+          const {data} =await axios.delete(`/api/chat/delete/${chatId}`,{
+            headers: {
+              Authorization :token
+            }
+          })
+          if(data.success){
+            setChats(prev=>prev.filter(chat=>chat._id!==chatId))
+            await fetchUserChats();
+            toast.success(data.message)
+          }
+        } catch (error) {
+          toast.error(error.message)
+        }
+  }
   return (
     <>
       {/* Sidebar */}
@@ -25,6 +53,7 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
 
         {/* New Chat Button */}
         <button
+          onClick={createNewChat}
           className="flex justify-center items-center w-full py-2 mt-10
           text-white bg-gradient-to-r from-[#A456F7] to-[#3D81F6] 
           text-sm rounded-md cursor-pointer"
@@ -78,6 +107,7 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
                     src={assets.bin_icon}
                     className="hidden group-hover:block w-4 cursor-pointer not-dark:invert"
                     alt="Delete"
+                    onClick={e=>toast.promise(deleteChat(e,chat._id),{loading:'deleting'})}
                   />
                 </div>
               </div>
@@ -114,12 +144,13 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
             <p>Dark Mode</p>
           </div>
           <label className='relative inline-flex cursor-pointer'>
-            <input
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              type='checkbox'
-              className='sr-only peer'
-              checked={theme === 'dark'}
-            />
+           <input
+  type="checkbox"
+  className="sr-only peer"
+  checked={theme === "dark"}
+  onChange={() => setTheme(theme === "dark" ? "light" : "dark")}
+/>
+
             <div className='w-9 h-5 bg-gray-400 rounded-full peer-checked:bg-purple-600 transition-all'></div>
             <span className='absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-4'></span>
           </label>
@@ -132,7 +163,7 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
           <p className='flex-1 text-sm dark:text-primary truncate'>
             {user ? user.name : 'login your account'}
           </p>
-          {user && <img src={assets.logout_icon} className='h-5 cursor-pointer hidden not-dark:invert group-hover:block' alt="logout" />}
+          {user && <img onClick={logout} src={assets.logout_icon} className='h-5 cursor-pointer hidden not-dark:invert group-hover:block' alt="logout" />}
         </div>
 
         {/* Close button */}

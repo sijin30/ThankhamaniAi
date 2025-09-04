@@ -42,7 +42,7 @@ export const getChats= async (req,res)=>{
 export const deleteChat= async (req,res)=>{
    try {
     const userId = req.user._id;
-    const {chatId}=req.body;
+    const {chatId}=req.user._id;
     await Chat.deleteOne({_id:chatId,userId})
     res.json({success:true,message:"chat deleted"});
 

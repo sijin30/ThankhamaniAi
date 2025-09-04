@@ -78,7 +78,7 @@ export const AppContextProvider=({children})=>{
         }
         
 
-      },[])
+      },[token])
 
       useEffect(()=>{
         if(user){
