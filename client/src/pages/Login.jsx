@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useAppContext } from '../context/AppContext';
 
 function Login() {
 
@@ -6,9 +7,11 @@ function Login() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const {axios,setToken}=useAppContext();
 
     const handleSubmit= async (e)=>{
         e.preventDefault();
+        const url=state==="login"?'/api/user/login':'/api/user/register'
     }
 
   return (
