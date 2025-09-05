@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import { dummyPublishedImages } from '../assets/assets'
 import Loading from './Loading'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 function Community() {
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(true)
+  const { axios } = useAppContext()
 
   const fetchImages = async () => {
-    setImages(dummyPublishedImages)
+    try {
+      const { data } = await axios.get('/api/user/published-images')
+
+      if (data.success) {
+        setImages(data.images)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
     setLoading(false)
   }
 
@@ -34,7 +46,7 @@ function Community() {
             >
               <img
                 src={item.imageUrl}
-                alt=""
+                alt="Community Image"
                 className="w-full h-40 md:h-50 2xl:h-62 object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
               />
               <p className="absolute bottom-0 right-0 text-xs bg-black/50 backdrop-blur text-white px-4 py-1 rounded-tl-xl opacity-0 group-hover:opacity-100 transition duration-300">

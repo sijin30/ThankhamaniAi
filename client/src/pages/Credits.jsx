@@ -1,16 +1,51 @@
 import React, { useState, useEffect } from "react";
 import { dummyPlans } from "../assets/assets";
 import Loading from "../pages/Loading";
+import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
+
 
 function Credits() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
+  const {axios,token} =useAppContext();
+
   const fetchPlans = async () => {
-    setPlans(dummyPlans);
-    setLoading(false);
-  };
+  try {
+    const { data } = await axios.get("/api/credit/plan");
+    if (data.success) {
+      setPlans(data.plans);
+    }
+  } catch (error) {
+    console.error(error.message);
+  }
+  setLoading(false);
+};
+
+const purchasePlan = async (planId) => {
+  try {
+    const { data } = await axios.post(
+      "/api/credit/purchase",
+      { planId }, // request body
+      {
+        headers: {
+          Authorization: token, // corrected spelling
+        },
+      }
+    );
+
+    if (data.success) {
+      window.location.href = data.url;
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+  }
+};
+
 
   useEffect(() => {
     fetchPlans();
@@ -53,7 +88,9 @@ function Credits() {
                 ))}
               </ul>
             </div>
-            <button className="mt-auto bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition">
+            <button
+            onClick={() => purchasePlan(plan._id)}
+            className="mt-auto bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition">
               Buy Now
             </button>
           </div>
