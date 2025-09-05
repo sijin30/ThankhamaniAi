@@ -34,18 +34,7 @@ export const AppContextProvider=({children})=>{
                 }
       }
 
-      const createNewChat=async()=>{
-                try {
-                  if(!user) return ('Login to create new chat')
-                    navigate('/')
-                  await axios.get('/api/chat/create',{headers:{Authorization:token}})
-                  await fetchUsersChat();
-                } catch (error) {
-                  toast.error(error.message)
-                }
-      }
-
-      const fetchUsersChat=async()=>{
+         const fetchUsersChat=async()=>{
    try {
 
         const {data}= await axios.get('/api/chat/get',{headers:{Authorization:token}});
@@ -67,6 +56,19 @@ export const AppContextProvider=({children})=>{
     toast.error(error.message)
    }
       }
+
+      const createNewChat=async()=>{
+                try {
+                  if(!user) return ('Login to create new chat')
+                    navigate('/')
+                  await axios.post('/api/chat/create',{},{headers:{Authorization:token}})
+                  await fetchUsersChat();
+                } catch (error) {
+                  toast.error(error.message)
+                }
+      }
+
+   
 
 
       useEffect(()=>{

@@ -5,36 +5,44 @@ import moment from 'moment';
 import toast from 'react-hot-toast';
 
 function Sidebar({ isMenuOpen, setIsMenuOpen }) {
-  const { chats, setChats, theme, setTheme, user, navigate,selectedChat,setSelectedChat,axios,fetchUserChats,setToken,token,createNewChat } = useAppContext();
+  const { chats, setChats, theme, setTheme, user,setUser, navigate,selectedChat,setSelectedChat,axios,fetchUsersChat,setToken,token,createNewChat } = useAppContext();
   const [search, setSearch] = useState('');
 
   const logout=()=>{
          localStorage.removeItem('token');
          setToken('null')
          toast.success('logged out successfully')
-
+          setUser(null);
+          setChats([]);
+           setSelectedChat(null);
+           navigate("/login");
   }
 
-  const deleteChat=async(e,chatId)=>{
-         
-        try {
-          e.stopPropagation()
-          const confirm=window.confirm('ee chat kalayano?')
-          if(!confirm) return
-          const {data} =await axios.delete(`/api/chat/delete/${chatId}`,{
-            headers: {
-              Authorization :token
-            }
-          })
-          if(data.success){
-            setChats(prev=>prev.filter(chat=>chat._id!==chatId))
-            await fetchUserChats();
-            toast.success(data.message)
-          }
-        } catch (error) {
-          toast.error(error.message)
-        }
+const deleteChat = async (e, chatId) => {
+  try {
+    e.stopPropagation();
+    const confirmDelete = window.confirm('ee chat kalayano?');
+    if (!confirmDelete) return;
+
+    // return axios promise so toast.promise works
+    return axios.delete(`/api/chat/delete`, {
+      headers: { Authorization: token },
+      data: { chatId },
+    }).then(({ data }) => {
+      if (data.success) {
+        setChats(prev => prev.filter(chat => chat._id !== chatId));
+        fetchUsersChat();
+        toast.success(data.message);
+      }
+    }).catch(error => {
+      toast.error(error.message);
+    });
+
+  } catch (error) {
+    toast.error(error.message);
   }
+};
+
   return (
     <>
       {/* Sidebar */}
@@ -107,7 +115,13 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
                     src={assets.bin_icon}
                     className="hidden group-hover:block w-4 cursor-pointer not-dark:invert"
                     alt="Delete"
-                    onClick={e=>toast.promise(deleteChat(e,chat._id),{loading:'deleting'})}
+                    onClick={(e) =>
+  toast.promise(deleteChat(e, chat._id), {
+    loading: 'Deleting...',
+    success: 'Chat deleted',
+    error: 'Failed to delete chat',
+  })
+}
                   />
                 </div>
               </div>

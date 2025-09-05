@@ -39,14 +39,28 @@ export const getChats= async (req,res)=>{
 
 //api controller for deleting a chat
 
-export const deleteChat= async (req,res)=>{
-   try {
-    const userId = req.user._id;
-    const {chatId}=req.user._id;
-    await Chat.deleteOne({_id:chatId,userId})
-    res.json({success:true,message:"chat deleted"});
+export const deleteChat = async (req, res) => {
+  try {
+    const userId = req.user._id; // comes from your auth middleware
+    const { chatId } = req.body; // get chatId from request body
 
-   } catch (error) {
-    return res.json({success:false,message:error.message})
-   }
-}
+    if (!chatId) {
+      return res.json({ success: false, message: "Chat ID is required" });
+    }
+
+    // FIX: use userId field (not user, not uderId)
+    const deleted = await Chat.deleteOne({ _id: chatId, userId: userId });
+
+    if (deleted.deletedCount === 0) {
+      return res.json({
+        success: false,
+        message: "Chat not found or not authorized",
+      });
+    }
+
+    res.json({ success: true, message: "Chat deleted successfully" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
