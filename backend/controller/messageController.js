@@ -1,8 +1,10 @@
 import Chat from "../models/Chat.js";
 import User from "../models/User.js";
-import openai from "../config/openai.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
 import imagekit from "../config/imagekit.js";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // =============================
 // Text based AI chat controller
@@ -26,14 +28,22 @@ export const textMessageController = async (req, res) => {
       isPublished: false,
     });
 
-    // get AI response
-    const { choices } = await openai.chat.completions.create({
-      model: "gemini-2.0-flash",
-      messages: [{ role: "user", content: prompt }],
-    });
+    // prepare history for Gemini (last 15 messages only)
+    const history = chat.messages.slice(-15).map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    // start a chat session with history
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const chatSession = model.startChat({ history });
+
+    // send new user message
+    const result = await chatSession.sendMessage(prompt);
 
     const reply = {
-      ...choices[0].message,
+      role: "assistant",
+      content: result.response.text(),
       timeStamp: Date.now(),
       isImage: false,
       isPublished: false,
@@ -42,13 +52,16 @@ export const textMessageController = async (req, res) => {
     chat.messages.push(reply);
     await chat.save();
 
+    // deduct credits
     await User.updateOne({ _id: userId }, { $inc: { credit: -1 } });
 
     res.json({ success: true, reply });
   } catch (error) {
+    console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
+
 
 // ===================================
 // Image generation message controller
