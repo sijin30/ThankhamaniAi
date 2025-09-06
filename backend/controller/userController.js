@@ -40,29 +40,27 @@ export const registerUser=async (req,res)=>{
 
 //api to login user
 
-export const loginUser=async(req,res)=>{
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
-    const {email,password}=req.body;
-     try {
+  try {
+    const user = await User.findOne({ email });
 
-        const user= await User.findOne({email});
-        if(user){
-                 const isMatch=await bcrypt.compare(password,user.password)
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
 
-                 if(isMatch){
-                    const token =generateToken(user._id);
-                    res.json({success:true,token})
-                 }
-        }
+      if (isMatch) {
+        const token = generateToken(user._id);
+        return res.json({ success: true, token });  // ✅ return here
+      }
+    }
 
-         return res.json({success:false,message:'invalid email or password'})
-
-        
-     } catch (error) {
-         return res.json({success:false,message:error.message})
-     }
-
-}
+    // only reached if no user OR wrong password
+    return res.json({ success: false, message: "invalid email or password" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
 
 //api to get user data
 
