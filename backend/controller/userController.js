@@ -62,6 +62,7 @@ export const loginUser=async(req,res)=>{
          return res.json({success:false,message:error.message})
      }
 
+     
 }
 
 //api to get user data
